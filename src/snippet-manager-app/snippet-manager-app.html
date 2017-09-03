@@ -8,24 +8,43 @@
         display: block;
       }
     </style>
-    <h2>Hello [[prop1]]!</h2>
-    <paper-input label="Dropbox API key"></paper-input>
+    
+    <paper-input label="Dropbox API key" value="{{apiKey}}"></paper-input>
+
+    <template is="dom-repeat" items="{{entries}}">
+      <div>File name: <span>{{item.name}}</span></div>
+    </template>
+
   </template>
 
   <script>
-    /**
-     * @customElement
-     * @polymer
-     */
     class SnippetManagerApp extends Polymer.Element {
       static get is() { return 'snippet-manager-app'; }
       static get properties() {
         return {
-          prop1: {
+          apiKey: {
             type: String,
-            value: 'snippet-manager-app'
+            value: "",
+            observer: '_apiKeyChanged'
+          },
+          dbx: {
+            type: Object,
+            notify: false
+          },
+          entries: {
+            type: Array
           }
         };
+      }
+      _apiKeyChanged() {
+        var dbx = this.dbx = new Dropbox({accessToken: this.apiKey});
+        dbx.filesListFolder({path: ''})
+          .then(function(response) {
+            this.entries = response.entries;
+          }.bind(this))
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     }
 

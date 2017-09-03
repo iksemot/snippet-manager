@@ -1,0 +1,6 @@
+{
+  "name": "snippet-manager",
+  "short_name": "snippet-manager",
+  "start_url": "/",
+  "display": "standalone"
+}

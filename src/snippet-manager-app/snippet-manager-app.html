@@ -1,0 +1,32 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="snippet-manager-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class SnippetManagerApp extends Polymer.Element {
+      static get is() { return 'snippet-manager-app'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'snippet-manager-app'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(SnippetManagerApp.is, SnippetManagerApp);
+  </script>
+</dom-module>

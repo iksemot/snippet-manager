@@ -13,7 +13,7 @@
     
     <paper-input label="Dropbox API key" value="{{apiKey}}"></paper-input>
 
-    <paper-listbox>  
+    <paper-listbox selected="{{selectedItem}}">  
       <template is="dom-repeat" items="{{entries}}">
         <paper-item>
           <paper-item-body two-line>
@@ -23,6 +23,9 @@
         </paper-item>
       </template>
     </paper-listbox>
+
+    <h2>{{selectedItem}}</h2>
+    <pre>{{content}}</pre>
   </template>
 
   <script>
@@ -41,18 +44,39 @@
           },
           entries: {
             type: Array
+          },
+          selectedItem: {
+            type: Number,
+            observer: '_selectedItemChanged'
+          },
+          content: {
+            type: String
           }
         };
       }
+
       _apiKeyChanged() {
         var dbx = this.dbx = new Dropbox({accessToken: this.apiKey});
+
         dbx.filesListFolder({path: ''})
           .then(function(response) {
             this.entries = response.entries;
-          }.bind(this))
-          .catch(function(error) {
-            console.log(error);
-          });
+          }.bind(this));
+      }
+
+      _selectedItemChanged(itemId) {
+        var filePath = this.entries[itemId].path_lower;
+
+        this.dbx.filesDownload({path: filePath})
+          .then(function (response) {
+              var blob = response.fileBlob,
+                reader = new FileReader();
+
+              reader.addEventListener("loadend", function () {
+                this.content = reader.result;
+              }.bind(this));
+              reader.readAsText(blob)
+          }.bind(this));
       }
     }
 

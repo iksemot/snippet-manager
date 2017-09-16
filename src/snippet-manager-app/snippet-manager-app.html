@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
 <dom-module id="snippet-manager-app">
   <template>
@@ -34,7 +35,11 @@
     <h2>{{selectedItem}}</h2>
     <pre>{{content}}</pre>
 
+    <paper-input value="{{fileName}}"></paper-input>
+    <paper-button raised on-click="saveFileNameOnClick">Save name</paper-button>
+
     <paper-textarea value="{{content}}"></paper-textarea>
+    <paper-button raised on-click="saveContentOnClick">Save content</paper-button>
   </template>
 
   <script>
@@ -57,6 +62,9 @@
           selectedItem: {
             type: Number,
             observer: '_selectedItemChanged'
+          },
+          fileName: {
+            type: String
           },
           content: {
             type: String
@@ -83,9 +91,42 @@
 
               reader.addEventListener("loadend", function () {
                 this.content = reader.result;
+                this.fileName = this.entries[itemId].name;
               }.bind(this));
               reader.readAsText(blob)
           }.bind(this));
+      }
+
+      saveFileNameOnClick() {
+        var fileItem = this.entries[this.selectedItem],
+          fileRelocation = {
+            from_path: fileItem.path_lower,
+            to_path: fileItem.path_lower.replace(fileItem.name, this.fileName)
+          };
+
+        this.dbx.filesMoveV2(fileRelocation)
+        .then(function () {
+            console.log("File move: OK");
+          })
+          .catch(function () {
+            console.log("File move: ERR");
+          });
+      }
+
+      saveContentOnClick() {
+        var fileCommit = {
+          path: this.entries[this.selectedItem].path_lower,
+          contents: this.content,
+          mode: 'overwrite'
+        }
+
+        this.dbx.filesUpload(fileCommit)
+          .then(function () {
+            console.log("File upload: OK");
+          })
+          .catch(function () {
+            console.log("File upload: ERR");
+          });
       }
     }
 

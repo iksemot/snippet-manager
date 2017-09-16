@@ -21,6 +21,8 @@
     
     <paper-input label="Dropbox API key" value="{{apiKey}}"></paper-input>
 
+    <paper-button raised on-click="createNewItemOnClick">Create</paper-button>
+
     <paper-listbox selected="{{selectedItem}}">  
       <template is="dom-repeat" items="{{entries}}">
         <paper-item>
@@ -74,8 +76,11 @@
 
       _apiKeyChanged() {
         var dbx = this.dbx = new Dropbox({accessToken: this.apiKey});
+        this._refreshEntriesList();
+      }
 
-        dbx.filesListFolder({path: ''})
+      _refreshEntriesList() {
+        this.dbx.filesListFolder({path: ''})
           .then(function(response) {
             this.entries = response.entries;
           }.bind(this));
@@ -95,6 +100,22 @@
               }.bind(this));
               reader.readAsText(blob)
           }.bind(this));
+      }
+
+      createNewItemOnClick() {
+        var fileCommit = {
+          path: '/unnamed',
+          autorename: true
+        }
+
+        this.dbx.filesUpload(fileCommit)
+          .then(function () {
+            console.log("Create new item: OK");
+            this._refreshEntriesList();
+          }.bind(this))
+          .catch(function () {
+            console.log("Create new item: ERR");
+          });
       }
 
       saveFileNameOnClick() {

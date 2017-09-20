@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
@@ -33,6 +34,8 @@
         </paper-item>
       </template>
     </paper-listbox>
+
+    <paper-button raised on-click="deleteItemOnClick">Delete selected</paper-button>
 
     <h2>{{selectedItem}}</h2>
     <pre>{{content}}</pre>
@@ -118,6 +121,21 @@
           });
       }
 
+      deleteItemOnClick() {
+        var fileItem = this.entries[this.selectedItem],
+          filesDelete = {
+            path: fileItem.path_lower
+          };
+
+        this.dbx.filesDelete(filesDelete)
+          .then(function () {
+            console.log("File delete: OK");
+          })
+          .catch(function () {
+            console.log("File delte: ERR");
+          });
+      }
+
       saveFileNameOnClick() {
         var fileItem = this.entries[this.selectedItem],
           fileRelocation = {
@@ -126,7 +144,7 @@
           };
 
         this.dbx.filesMoveV2(fileRelocation)
-        .then(function () {
+          .then(function () {
             console.log("File move: OK");
           })
           .catch(function () {

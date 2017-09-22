@@ -6,7 +6,11 @@
     "paper-input": "PolymerElements/paper-input#^2.0.2",
     "paper-item": "PolymerElements/paper-item#^2.0.0",
     "paper-listbox": "PolymerElements/paper-listbox#^2.0.0",
-    "paper-button": "^2.0.0"
+    "paper-button": "^2.0.0",
+    "app-layout": "^2.0.1",
+    "paper-icon-button": "^2.0.1",
+    "iron-icons": "^2.0.1",
+    "marked-element": "^2.3.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",

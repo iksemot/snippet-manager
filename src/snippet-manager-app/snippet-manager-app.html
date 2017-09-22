@@ -5,12 +5,26 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/app-layout/app-layout.html">
+<link rel="import" href="../../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../../bower_components/marked-element/marked-element.html">
 
 <dom-module id="snippet-manager-app">
   <template>
     <style>
       :host {
-        display: block;
+      }
+
+      app-header {
+        background-color: #007ac9;
+      }
+
+      app-drawer-layout:not([narrow]) [drawer-toggle] {
+        display: none;
       }
 
       paper-textarea {
@@ -19,32 +33,55 @@
         };
       }
     </style>
-    
-    <paper-input label="Dropbox API key" value="{{apiKey}}"></paper-input>
 
-    <paper-button raised on-click="createNewItemOnClick">Create</paper-button>
+    <app-drawer-layout fullbleed>
+      <app-drawer slot="drawer">
+        <app-header-layout has-scrolling-region>
+          <app-header slot="header" fixed condenses>
+            <app-toolbar>
+              <paper-icon-button icon="add" on-click="createNewItemOnClick"></paper-icon-button>
+              <paper-icon-button icon="delete" on-click="deleteItemOnClick"></paper-icon-button>
+            </app-toolbar>
+          </app-header>
+          <div>
+            <paper-listbox selected="{{selectedItem}}">  
+              <template is="dom-repeat" items="{{entries}}">
+                <paper-item>
+                  <paper-item-body two-line>
+                    <div>{{item.name}}</div>
+                    <div secondary>{{item.client_modified}}</div>
+                  </paper-item-body>
+                </paper-item>
+              </template>
+            </paper-listbox>
+          </div>
+        </app-header-layout>
+      </app-drawer>
+      <app-header-layout>
+          <app-header slot="header" fixed condenses>
+            <app-toolbar>
+              <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+            </app-toolbar>
+          </app-header>
+      
+          <div>
+            <paper-input label="Dropbox API key" value="{{apiKey}}"></paper-input>
 
-    <paper-listbox selected="{{selectedItem}}">  
-      <template is="dom-repeat" items="{{entries}}">
-        <paper-item>
-          <paper-item-body two-line>
-            <div>{{item.name}}</div>
-            <div secondary>{{item.client_modified}}</div>
-          </paper-item-body>
-        </paper-item>
-      </template>
-    </paper-listbox>
+            <h2>{{selectedItem}}</h2>
+            <marked-element markdown="{{content}}">
+              <div slot="markdown-html"></div>
+            </marked-element>
+        
+            <paper-input value="{{fileName}}"></paper-input>
+            <paper-button raised on-click="saveFileNameOnClick">Save name</paper-button>
+        
+            <paper-textarea value="{{content}}"></paper-textarea>
+            <paper-button raised on-click="saveContentOnClick">Save content</paper-button>
+          </div>
+      
+        </app-header-layout>
+    </app-drawer-layout>
 
-    <paper-button raised on-click="deleteItemOnClick">Delete selected</paper-button>
-
-    <h2>{{selectedItem}}</h2>
-    <pre>{{content}}</pre>
-
-    <paper-input value="{{fileName}}"></paper-input>
-    <paper-button raised on-click="saveFileNameOnClick">Save name</paper-button>
-
-    <paper-textarea value="{{content}}"></paper-textarea>
-    <paper-button raised on-click="saveContentOnClick">Save content</paper-button>
   </template>
 
   <script>

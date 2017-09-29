@@ -1,6 +1,11 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../src/snippet-manager-app/snippet-viewer.html">
+<link rel="import" href="../../src/snippet-manager-app/snippet-editor.html">
+
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
@@ -12,11 +17,13 @@
 <link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../../bower_components/marked-element/marked-element.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
 
 <dom-module id="snippet-manager-app">
   <template>
     <style>
       :host {
+        @apply(--paper-font-common-base);
       }
 
       app-header {
@@ -34,13 +41,17 @@
       }
     </style>
 
+    <app-location route="{{route}}" use-hash-as-path></app-location>
+    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
+    <app-route route="{{subroute}}" pattern="/:action" data="{{subrouteData}}" tail="{{subsubroute}}"></app-route>
+    <app-route route="{{subsubroute}}" pattern="/:path" data="{{subsubrouteData}}"></app-route>
+
     <app-drawer-layout fullbleed>
       <app-drawer slot="drawer">
         <app-header-layout has-scrolling-region>
           <app-header slot="header" fixed condenses>
             <app-toolbar>
               <paper-icon-button icon="add" on-click="createNewItemOnClick"></paper-icon-button>
-              <paper-icon-button icon="delete" on-click="deleteItemOnClick"></paper-icon-button>
             </app-toolbar>
           </app-header>
           <div>
@@ -51,6 +62,7 @@
                     <div>{{item.name}}</div>
                     <div secondary>{{item.client_modified}}</div>
                   </paper-item-body>
+                  <paper-icon-button icon="delete" on-click="deleteItemOnClick"></paper-icon-button>
                 </paper-item>
               </template>
             </paper-listbox>
@@ -61,24 +73,20 @@
           <app-header slot="header" fixed condenses>
             <app-toolbar>
               <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+              <div main-title></div>
+              <!-- <paper-input label="Dropbox API key" value="{{apiKey}}"></paper-input> -->
+              <iron-pages selected="[[subrouteData.action]]" attr-for-selected="action">
+                <paper-icon-button action="view" icon="create" on-click="editItem" visible="false"></paper-icon-button>
+                <paper-icon-button action="edit" icon="save" on-click="saveItem" visible="false"></paper-icon-button>
+              </iron-pages>
             </app-toolbar>
           </app-header>
-      
-          <div>
-            <paper-input label="Dropbox API key" value="{{apiKey}}"></paper-input>
 
-            <h2>{{selectedItem}}</h2>
-            <marked-element markdown="{{content}}">
-              <div slot="markdown-html"></div>
-            </marked-element>
-        
-            <paper-input value="{{fileName}}"></paper-input>
-            <paper-button raised on-click="saveFileNameOnClick">Save name</paper-button>
-        
-            <paper-textarea value="{{content}}"></paper-textarea>
-            <paper-button raised on-click="saveContentOnClick">Save content</paper-button>
-          </div>
-      
+          <iron-pages selected="[[subrouteData.action]]" attr-for-selected="action">
+            <snippet-viewer action="view" dbx="[[dbx]]" path="[[subsubrouteData.path]]"></snippet-viewer>
+            <snippet-editor action="edit" dbx="[[dbx]]" path="[[subsubrouteData.path]]" content="{{newContent}}" name="{{newName}}"></snippet-editor>
+          </iron-pages>
+    
         </app-header-layout>
     </app-drawer-layout>
 
@@ -103,12 +111,18 @@
           },
           selectedItem: {
             type: Number,
-            observer: '_selectedItemChanged'
+            observer: 'viewItem'
           },
           fileName: {
             type: String
           },
           content: {
+            type: String
+          },
+          newContent: {
+            type: String
+          },
+          newName: {
             type: String
           }
         };
@@ -120,26 +134,30 @@
       }
 
       _refreshEntriesList() {
-        this.dbx.filesListFolder({path: ''})
+        return this.dbx.filesListFolder({path: ''})
           .then(function(response) {
             this.entries = response.entries;
           }.bind(this));
       }
 
-      _selectedItemChanged(itemId) {
+      viewItem(itemId) {
         var filePath = this.entries[itemId].path_lower;
+        this.set("route.path", "/snippet/view" + filePath);
+      }
 
-        this.dbx.filesDownload({path: filePath})
-          .then(function (response) {
-              var blob = response.fileBlob,
-                reader = new FileReader();
+      editItem () {
+        var path = this.subsubrouteData.path;
+        this.set("route.path", "/snippet/edit/" + path);
+      }
 
-              reader.addEventListener("loadend", function () {
-                this.content = reader.result;
-                this.fileName = this.entries[itemId].name;
-              }.bind(this));
-              reader.readAsText(blob)
-          }.bind(this));
+      saveItem () {
+        var path = this.subsubrouteData.path;
+
+        Promise.resolve()
+          .then(() => this.saveContentOnClick(path, this.newContent))
+          .then(() => this.saveFileNameOnClick(path, this.newName))
+          .then(() => this._refreshEntriesList())
+          .then(() => this.set("route.path", "/snippet/view/" + this.newName));
       }
 
       createNewItemOnClick() {
@@ -149,38 +167,40 @@
         }
 
         this.dbx.filesUpload(fileCommit)
-          .then(function () {
+          .then(function (fileItem) {
             console.log("Create new item: OK");
             this._refreshEntriesList();
+            this.set("route.path", "/snippet/view" + fileItem.path_lower)
           }.bind(this))
           .catch(function () {
             console.log("Create new item: ERR");
           });
       }
 
-      deleteItemOnClick() {
+      deleteItemOnClick(e) {
         var fileItem = this.entries[this.selectedItem],
           filesDelete = {
-            path: fileItem.path_lower
+            path: e.model.get("item.path_lower")
           };
 
         this.dbx.filesDelete(filesDelete)
           .then(function () {
             console.log("File delete: OK");
-          })
+            this._refreshEntriesList();
+            this.set("route.path", "/")
+          }.bind(this))
           .catch(function () {
             console.log("File delte: ERR");
           });
       }
 
-      saveFileNameOnClick() {
-        var fileItem = this.entries[this.selectedItem],
-          fileRelocation = {
-            from_path: fileItem.path_lower,
-            to_path: fileItem.path_lower.replace(fileItem.name, this.fileName)
-          };
+      saveFileNameOnClick(oldName, newName) {
+        var fileRelocation = {
+          from_path: "/" + oldName,
+          to_path: "/" + newName
+        };
 
-        this.dbx.filesMoveV2(fileRelocation)
+        return this.dbx.filesMoveV2(fileRelocation)
           .then(function () {
             console.log("File move: OK");
           })
@@ -189,14 +209,14 @@
           });
       }
 
-      saveContentOnClick() {
+      saveContentOnClick(path, content) {
         var fileCommit = {
-          path: this.entries[this.selectedItem].path_lower,
-          contents: this.content,
+          path: "/" + path,
+          contents: content,
           mode: 'overwrite'
         }
 
-        this.dbx.filesUpload(fileCommit)
+        return this.dbx.filesUpload(fileCommit)
           .then(function () {
             console.log("File upload: OK");
           })

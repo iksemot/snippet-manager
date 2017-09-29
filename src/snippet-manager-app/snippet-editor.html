@@ -1,0 +1,57 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<dom-module id="snippet-editor">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <paper-input value="{{name}}"></paper-input>
+    <paper-textarea value="{{content}}"></paper-textarea>
+  </template>
+
+  <script>
+    class SnippetEditor extends Polymer.Element {
+      static get is() { return 'snippet-editor'; }
+      static get properties() {
+        return {
+          dbx: {
+            type: Object,
+            notify: false
+          },
+          path: {
+            type: String,
+            observer: "loadFile"
+          },
+          name: {
+            type: String,
+            notify: true
+          },
+          content: {
+            type: String,
+            notify: true
+          }
+        };
+      }
+
+      loadFile () {
+        this.dbx.filesDownload({path: "/" + this.path})
+          .then(function (response) {
+              var blob = response.fileBlob,
+                reader = new FileReader();
+
+              reader.addEventListener("loadend", function () {
+                this.name = response.name;
+                this.content = reader.result;
+              }.bind(this));
+              reader.readAsText(blob)
+          }.bind(this));
+      }
+    }
+
+    window.customElements.define(SnippetEditor.is, SnippetEditor);
+  </script>
+</dom-module>

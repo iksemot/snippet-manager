@@ -1,0 +1,75 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="snippet-dropbox-api">
+  <script>
+    class SnippetDropboxAPI extends Polymer.Element {
+      static get is() { return 'snippet-dropbox-api'; }
+      static get properties() {
+        return {
+          authToken: {
+            type: String,
+            value: "",
+            observer: 'authTokenChanged'
+          },
+          _dbx: {
+            type: Object
+          },
+          dbx: {
+            type: Object,
+            notify: true
+          },
+          _queries: {
+            type: Number,
+            value: 0,
+            observer: "onQueriesChange"
+          },
+          isLoading: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+          isReady: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+          error: {
+            type: String,
+            notify: true
+          }
+        };
+      }
+
+      authTokenChanged(authToken) {       
+        var _queries = this._queries,
+          self = this;
+        this._dbx = new Dropbox({accessToken: this.authToken});
+        this.dbx = new Proxy(this._dbx, {
+          get(target, prop, receiver) {
+            const originalMethod = target[prop];
+            return function (...args) {
+              self.set("_queries", ++_queries);
+              self.set("error", "");
+              return originalMethod.apply(target, args)
+                .then((res) => {self.set("_queries", --_queries); return res;})
+                .catch((err) => {
+                  self.set("error", err.error.error_summary || err.error);
+                  self.set("_queries", --_queries);
+                  return err;
+                })
+            }
+          }
+        });
+        this.set("isReady", true);
+      }
+
+      onQueriesChange(number) {
+        this.set("isLoading", number > 0);
+      }
+    }
+
+    window.customElements.define(SnippetDropboxAPI.is, SnippetDropboxAPI);
+
+
+  </script>
+</dom-module>

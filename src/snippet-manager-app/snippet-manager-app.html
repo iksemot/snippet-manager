@@ -83,8 +83,7 @@
     <app-route route="{{subroute}}" pattern="/:action" data="{{subrouteData}}" tail="{{subsubroute}}"></app-route>
     <app-route route="{{subsubroute}}" pattern="/:path" data="{{subsubrouteData}}"></app-route>
 
-    <snippet-dropbox-api dbx="{{dbx}}" auth-token="{{authToken}}" 
-      is-ready="{{isDropboxReady}}" is-loading="{{isLoading}}" error="{{errorMsg}}" ></snippet-dropbox-api>
+    <snippet-dropbox-api dbx="{{dbx}}" is-ready="{{isDropboxReady}}" is-loading="{{isLoading}}" error="{{errorMsg}}" ></snippet-dropbox-api>
     
     <app-header-layout fullbleed>
       <app-header fixed slot="header">

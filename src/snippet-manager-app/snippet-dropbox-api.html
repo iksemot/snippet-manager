@@ -1,6 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
 
 <dom-module id="snippet-dropbox-api">
+  <template>
+    <app-location route="{{route}}"></app-location>
+    <app-route route="{{route}}" pattern="/auth" active="{{isAuth}}"></app-route>
+  </template>
   <script>
     class SnippetDropboxAPI extends Polymer.Element {
       static get is() { return 'snippet-dropbox-api'; }
@@ -8,8 +14,7 @@
         return {
           authToken: {
             type: String,
-            value: "",
-            observer: 'authTokenChanged'
+            value: ""
           },
           _dbx: {
             type: Object
@@ -36,11 +41,27 @@
           error: {
             type: String,
             notify: true
+          },
+          isAuth: {
+            type: Boolean
           }
         };
       }
 
-      authTokenChanged(authToken) {       
+      ready() {
+        super.ready();
+        if(this.isAuth) return this.parseAuthToken();
+        if(!this.authToken && !this.isAuth) return this.authenticate();
+        
+      }
+
+      parseAuthToken() {
+        var authToken = window.location.hash.split("&")[0].split("=")[1];
+        this.set("authToken", authToken);
+        this.authorize();
+      }
+
+      authorize() {        
         var _queries = this._queries,
           self = this;
         this._dbx = new Dropbox({accessToken: this.authToken});
@@ -61,6 +82,14 @@
           }
         });
         this.set("isReady", true);
+      }
+
+      authenticate() {
+        var dbx = new Dropbox({clientId: "1tixvq46rvmmufz"}),
+          loc = window.location,
+          url = dbx.getAuthenticationUrl(loc.protocol + "//" + loc.host + "/auth");
+
+        window.location = url;
       }
 
       onQueriesChange(number) {

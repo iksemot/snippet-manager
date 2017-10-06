@@ -1,0 +1,37 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+
+<dom-module id="snippet-authorization">
+  <template>
+    <style include="paper-dialog-shared-styles">
+      :host {
+        width: 450px;
+        margin: auto;
+      }
+    </style>
+
+    <slot>
+      Authenticate with:
+      <paper-button raised class="indigo" on-click="_authenticateWithDropbox">Dropbox</paper-button>
+    </slot>
+  </template>
+
+  <script>
+    class SnippetAuthorization extends Polymer.Element {
+      static get is() { return 'snippet-authorization'; }
+
+      _authenticateWithDropbox() {
+        this.dispatchEvent(new CustomEvent('authenticate', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            provider: "dropbox" // TODO: replace with enum
+          }
+        }));
+      }
+    }
+
+    window.customElements.define(SnippetAuthorization.is, SnippetAuthorization);
+  </script>
+</dom-module>

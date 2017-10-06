@@ -1,4 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../src/snippet-manager-app/snippet-dao.html">
+<link rel="import" href="../../src/snippet-manager-app/snippet-authorization.html">
 <link rel="import" href="../../src/snippet-manager-app/snippet-manager.html">
 
 <dom-module id="snippet-manager-app">
@@ -9,13 +11,44 @@
       }
     </style>
 
-    <snippet-manager></snippet-manager>
+
+    <snippet-dao id="dao" is-ready="{{isDAOReady}}" is-authorized="{{isAuthorized}}" dao="{{dao}}"></snippet-dao>
+
+    <template is="dom-if" if="[[isDAOReady]]">
+      <template is="dom-if" if="[[!isAuthorized]]">
+        <snippet-authorization></snippet-authorization>
+      </template>
+
+      <template is="dom-if" if="[[isAuthorized]]">
+        <snippet-manager dbx="{{dao.dbx}}"></snippet-manager>
+      </template>
+    </template>
 
   </template>
 
   <script>
     class SnippetManagerApp extends Polymer.Element {
       static get is() { return 'snippet-manager-app'; }
+      static get properties() {
+        return {
+          isDAOReady: {
+            type: Boolean
+          },
+          isAuthorized: {
+            type: Boolean
+          }
+        }
+      }
+
+      ready() {
+        super.ready();
+        this.addEventListener('authenticate', (e)=>this._onAuthenticate(e));
+      }
+
+      _onAuthenticate(event) {
+        this.$.dao.setProvider(event.detail.provider);
+        // this.$.dao.authenticate();
+      }
     }
 
     window.customElements.define(SnippetManagerApp.is, SnippetManagerApp);

@@ -1,0 +1,69 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="snippet-dao">
+  <script>
+    class SnippetDAO extends Polymer.Element {
+      static get is() { return 'snippet-dao'; }
+      static get properties() {
+        return {
+          isReady: {
+            type: Boolean,
+            value: true,
+            notify: true
+          },
+          isAuthorized: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+          dao: {
+            type: Object,
+            notify: true
+          },
+          _provider: {
+            type: String
+          }
+        };
+      }
+
+      ready() {
+        super.ready();
+
+        this.addEventListener('dao:authenticate:success', (e)=>this._onAuthenticateSuccess(e));
+
+        var provider = localStorage.getItem("_provider");
+        if (provider) this.set("_provider", provider);
+        this._initializeProvider();
+      }
+
+      _onAuthenticateSuccess(event) {
+        this.isAuthorized = true;
+      }
+
+      setProvider(provider) {
+        this.set("_provider", provider);
+        localStorage.setItem("_provider", provider);
+        this._initializeProvider();
+      }
+
+      _initializeProvider() {
+        if (!this._provider) return;
+
+        let href = "../../src/snippet-manager-app/snippet-dao-" + this._provider + ".html",
+          onload = () => {
+            var dao = document.createElement("snippet-dao-" + this._provider)
+            this.set("dao", dao);
+            this.appendChild(dao);
+          },
+          onerror = () => {
+            console.log("onError", arguments);
+          };
+
+        Polymer.importHref(href, onload, onerror);
+      }
+    }
+
+    window.customElements.define(SnippetDAO.is, SnippetDAO);
+
+  </script>
+</dom-module>

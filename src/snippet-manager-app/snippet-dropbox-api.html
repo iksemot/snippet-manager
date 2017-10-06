@@ -52,7 +52,6 @@
         super.ready();
         if(this.isAuth) return this.parseAuthToken();
         if(!this.authToken && !this.isAuth) return this.authenticate();
-        
       }
 
       parseAuthToken() {

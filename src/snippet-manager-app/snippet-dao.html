@@ -29,20 +29,23 @@
       ready() {
         super.ready();
 
-        this.addEventListener('dao:authenticate:success', (e)=>this._onAuthenticateSuccess(e));
-
-        var provider = localStorage.getItem("_provider");
-        if (provider) this.set("_provider", provider);
-        this._initializeProvider();
-      }
-
-      _onAuthenticateSuccess(event) {
-        this.isAuthorized = true;
+        this.addEventListener('dao:authenticate:success', () => this._onAuthenticateSuccess());
+        this._initializeProviderOnReady();
       }
 
       setProvider(provider) {
         this.set("_provider", provider);
         localStorage.setItem("_provider", provider);
+        this._initializeProvider();
+      }
+
+      _onAuthenticateSuccess() {
+        this.isAuthorized = true;
+      }
+
+      _initializeProviderOnReady() {
+        var provider = localStorage.getItem("_provider");
+        if (provider) this.set("_provider", provider);
         this._initializeProvider();
       }
 
@@ -56,6 +59,7 @@
             this.appendChild(dao);
           },
           onerror = () => {
+            // TODO emit error
             console.log("onError", arguments);
           };
 

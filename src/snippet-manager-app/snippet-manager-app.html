@@ -11,7 +11,6 @@
       }
     </style>
 
-
     <snippet-dao id="dao" is-ready="{{isDAOReady}}" is-authorized="{{isAuthorized}}" dao="{{dao}}"></snippet-dao>
 
     <template is="dom-if" if="[[isDAOReady]]">
@@ -20,7 +19,7 @@
       </template>
 
       <template is="dom-if" if="[[isAuthorized]]">
-        <snippet-manager dbx="{{dao.dbx}}"></snippet-manager>
+        <snippet-manager dao="{{dao}}"></snippet-manager>
       </template>
     </template>
 
@@ -47,7 +46,6 @@
 
       _onAuthenticate(event) {
         this.$.dao.setProvider(event.detail.provider);
-        // this.$.dao.authenticate();
       }
     }
 

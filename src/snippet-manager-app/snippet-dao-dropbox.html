@@ -1,32 +1,18 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/app-route/app-location.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../src/snippet-manager-app/snippet-dao-dropbox-api.html">
 
 <dom-module id="snippet-dao-dropbox">
   <template>
     <app-location route="{{route}}"></app-location>
-    <app-route route="{{route}}" pattern="/auth" active="{{isAuth}}"></app-route>
+    <app-route route="{{route}}" pattern="/auth" active="{{__isAuthInProgress}}"></app-route>
   </template>
   <script>
     class SnippetDAODropbox extends Polymer.Element {
       static get is() { return 'snippet-dao-dropbox'; }
       static get properties() {
         return {
-          isAuth: { // Make private
-            type: Boolean
-          },
-
-          authToken: {
-            type: String,
-            value: ""
-          },
-          _dbx: {
-            type: Object
-          },
-          dbx: {
-            type: Object,
-            notify: true
-          },
           _queries: {
             type: Number,
             value: 0,
@@ -40,36 +26,108 @@
           error: {
             type: String,
             notify: true
-          }
+          },
+
+
+          __authToken: {
+            type: String,
+            value: ""
+          },
+          __isAuthInProgress: {
+            type: Boolean
+          },
+          __dbxRaw: {
+            type: Object
+          },
+          __dbx: {
+            type: Object
+          },
         };
       }
 
       ready() {
         super.ready();
-        if(this.isAuth) return this.parseAuthToken();
-        if(localStorage.getItem("_token")) return this.useLocalStorageToken();
-        if(!this.authToken && !this.isAuth) return this.authenticate();
-        
+
+        if(this.__isAuthInProgress) return this._parseAuthToken();
+        if(localStorage.getItem("_token")) return this._useLocalStorageToken();
+        if(!this.__authToken && !this.__isAuthInProgress) return this.authenticate();
       }
 
-      parseAuthToken() {
+      getFiles() {
+        // TODO Create a data collection
+        return this.__dbx.filesListFolder({path: ''});
+      }
+
+      create(fileName) {
+        var fileCommit = {
+          path: '/' + fileName,
+          autorename: true
+        }
+
+        // TODO Create a data model
+        return this.__dbx.filesUpload(fileCommit);
+      }
+
+      read(fileName) {
+        return new Promise((resolve, reject) => {
+          this.__dbx.filesDownload({path: "/" + fileName})
+            .then((response) => {
+                var blob = response.fileBlob,
+                  reader = new FileReader();
+
+                reader.addEventListener("loadend", () => {
+                  resolve(reader.result);
+                });
+
+                reader.readAsText(blob)
+            });
+        });
+      }
+
+      delete(filePath) {
+        var filesDelete = {
+          path: filePath
+        };
+
+        return this.__dbx.filesDelete(filesDelete);
+      }
+
+      rename(oldName, newName) {
+        var fileRelocation = {
+          from_path: "/" + oldName,
+          to_path: "/" + newName
+        };
+
+        return this.dbx.filesMoveV2(fileRelocation);
+      }
+
+      save(fileName, content) {
+        var fileCommit = {
+          path: "/" + path,
+          contents: content,
+          mode: 'overwrite'
+        }
+
+        return this.dbx.filesUpload(fileCommit);
+      }
+
+      _parseAuthToken() {
         var authToken = window.location.hash.split("&")[0].split("=")[1];
-        this.set("authToken", authToken);
         localStorage.setItem("_token", authToken);
-        this.authorize();
+        this._useLocalStorageToken();
       }
 
-      useLocalStorageToken() {
+      _useLocalStorageToken() {
         var authToken = localStorage.getItem("_token");
-        this.set("authToken", authToken);
+        this.set("__authToken", authToken);
         this.authorize();
       }
 
       authorize() {        
         var _queries = this._queries,
           self = this;
-        this._dbx = new Dropbox({accessToken: this.authToken});
-        this.dbx = new Proxy(this._dbx, {
+        this.__dbxRaw = new Dropbox({accessToken: this.__authToken});
+        this.__dbx = new Proxy(this.__dbxRaw, {
           get(target, prop, receiver) {
             const originalMethod = target[prop];
             return function (...args) {
@@ -102,10 +160,6 @@
 
       onQueriesChange(number) {
         this.set("isLoading", number > 0);
-      }
-
-      test() {
-        console.log("Test!");
       }
     }
 

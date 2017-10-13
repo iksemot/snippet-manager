@@ -83,8 +83,6 @@
     <app-route route="{{subroute}}" pattern="/:action" data="{{subrouteData}}" tail="{{subsubroute}}"></app-route>
     <app-route route="{{subsubroute}}" pattern="/:path" data="{{subsubrouteData}}"></app-route>
 
-    <!-- <snippet-dropbox-api dbx="{{dbx}}" is-ready="{{isDropboxReady}}" is-loading="{{isLoading}}" error="{{errorMsg}}" ></snippet-dropbox-api>
-     -->
     <app-header-layout fullbleed>
       <app-header fixed slot="header">
         <app-toolbar>
@@ -121,8 +119,8 @@
 
         <div id="main">
           <iron-pages selected="[[subrouteData.action]]" attr-for-selected="action">
-            <snippet-viewer action="view" dbx="[[dbx]]" path="[[subsubrouteData.path]]"></snippet-viewer>
-            <snippet-editor action="edit" dbx="[[dbx]]" path="[[subsubrouteData.path]]" content="{{newContent}}" name="{{newName}}"></snippet-editor>
+            <snippet-viewer action="view" dao="[[dao]]" path="[[subsubrouteData.path]]"></snippet-viewer>
+            <snippet-editor action="edit" dao="[[dao]]" path="[[subsubrouteData.path]]" content="{{newContent}}" name="{{newName}}"></snippet-editor>
           </iron-pages>
 
           <template is="dom-if" if="[[errorMsg]]">
@@ -156,7 +154,7 @@
             type: String,
             value: ""
           },
-          dbx: {
+          dao: {
             type: Object
           },
           entries: {
@@ -181,16 +179,16 @@
         };
       }
 
-      onDropboxReady(isReady) {
-        if (!isReady) return;
+      ready() {
+        super.ready();
         this._refreshEntriesList();
       }
 
       _refreshEntriesList() {
-        return this.dbx.filesListFolder({path: ''})
-          .then(function(response) {
+        this.dao.getFiles()
+          .then((response) => {
             this.entries = response.entries;
-          }.bind(this));
+          });
       }
 
       viewItem(itemId) {
@@ -214,48 +212,27 @@
       }
 
       createNewItemOnClick() {
-        var fileCommit = {
-          path: '/unnamed',
-          autorename: true
-        }
-
-        this.dbx.filesUpload(fileCommit)
-          .then(function (fileItem) {
+        this.dao.create("unnamed")
+          .then((fileItem) => {
             this._refreshEntriesList();
             this.set("route.path", "/snippet/view" + fileItem.path_lower)
-          }.bind(this));
+          })
       }
 
       deleteItemOnClick(e) {
-        var fileItem = this.entries[this.selectedItem],
-          filesDelete = {
-            path: e.model.get("item.path_lower")
-          };
-
-        this.dbx.filesDelete(filesDelete)
-          .then(function () {
+        this.dao.delete(e.model.get("item.path_lower"))
+          .then(() => {
             this._refreshEntriesList();
-            this.set("route.path", "/")
-          }.bind(this));
+            this.set("route.path", "/");
+          });
       }
 
       saveFileNameOnClick(oldName, newName) {
-        var fileRelocation = {
-          from_path: "/" + oldName,
-          to_path: "/" + newName
-        };
-
-        return this.dbx.filesMoveV2(fileRelocation);
+        return this.dao.rename(oldName, newName);
       }
 
       saveContentOnClick(path, content) {
-        var fileCommit = {
-          path: "/" + path,
-          contents: content,
-          mode: 'overwrite'
-        }
-
-        return this.dbx.filesUpload(fileCommit);
+        return this.dao.save(path, content);
       }
 
       toggleDrawer() {

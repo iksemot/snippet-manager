@@ -20,7 +20,7 @@
       static get is() { return 'snippet-viewer'; }
       static get properties() {
         return {
-          dbx: {
+          dao: {
             type: Object,
             notify: false
           },
@@ -35,16 +35,10 @@
       }
 
       loadFile () {
-        this.dbx.filesDownload({path: "/" + this.path})
-          .then(function (response) {
-              var blob = response.fileBlob,
-                reader = new FileReader();
-
-              reader.addEventListener("loadend", function () {
-                this.content = reader.result;
-              }.bind(this));
-              reader.readAsText(blob)
-          }.bind(this));
+        this.dao.read(this.path)
+          .then((content) => {
+            this.content = content;
+          });
       }
     }
 

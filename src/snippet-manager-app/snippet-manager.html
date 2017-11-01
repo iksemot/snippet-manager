@@ -4,7 +4,6 @@
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../src/snippet-manager-app/snippet-viewer.html">
 <link rel="import" href="../../src/snippet-manager-app/snippet-editor.html">
-<link rel="import" href="../../src/snippet-manager-app/snippet-dropbox-api.html">
 
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
@@ -27,7 +26,11 @@
   <template>
     <style>
       :host {
-        @apply(--paper-font-common-base);
+        @apply --paper-font-common-base;
+      }
+
+      app-header-layout {
+        background-color: var(--paper-grey-50);
       }
 
       app-header {
@@ -58,6 +61,11 @@
         margin-top: 65px;
         height: calc(100% - 80px);
         overflow: auto;
+        background-color: var(--paper-grey-50);
+      }
+
+      paper-listbox {
+        background-color: var(--paper-grey-50);
       }
 
       #addButton {
@@ -68,13 +76,6 @@
 
       #main {
         padding: 10px;
-      }
-
-
-      paper-textarea {
-        --iron-autogrow-textarea: {
-          font-family: monospace;
-        };
       }
     </style>
 
@@ -88,10 +89,10 @@
         <app-toolbar>
           <paper-icon-button icon="menu" id="toggle" on-click="toggleDrawer"></paper-icon-button>
           <div main-title>Snippet Manager</div>
-          <iron-pages selected="[[subrouteData.action]]" attr-for-selected="action">
+          <!-- <iron-pages selected="[[subrouteData.action]]" attr-for-selected="action">
             <paper-icon-button action="view" icon="create" on-click="editItem" visible="false"></paper-icon-button>
             <paper-icon-button action="edit" icon="save" on-click="saveItem" visible="false"></paper-icon-button>
-          </iron-pages>
+          </iron-pages> -->
           <template is="dom-if" if="[[isLoading]]">
             <paper-progress value="10" indeterminate bottom-item></paper-progress>
           </template>
@@ -139,10 +140,6 @@
       static get is() { return 'snippet-manager'; }
       static get properties() {
         return {
-          isDropboxReady: {
-            type: Boolean,
-            observer: "onDropboxReady"
-          },
           isLoading: {
             type: Boolean,
             value: false
@@ -181,7 +178,13 @@
 
       ready() {
         super.ready();
+        this._attachListeners();
         this._refreshEntriesList();
+      }
+
+      _attachListeners() {
+        this.addEventListener('snippet:edit', (e)=>this._onSnippetEdit(e));
+        this.addEventListener('snippet:save', (e)=>this._onSnippetSave(e));
       }
 
       _refreshEntriesList() {
@@ -191,14 +194,19 @@
           });
       }
 
+      _onSnippetEdit(e) {
+        var path = e.detail.path;
+        this.set("route.path", "/snippet/edit/" + path);
+      }
+
+      _onSnippetSave(e) {
+        var path = e.detail.path;
+        this.set("route.path", "/snippet/view/" + path);
+      }
+
       viewItem(itemId) {
         var filePath = this.entries[itemId].path_lower;
         this.set("route.path", "/snippet/view" + filePath);
-      }
-
-      editItem () {
-        var path = this.subsubrouteData.path;
-        this.set("route.path", "/snippet/edit/" + path);
       }
 
       saveItem () {

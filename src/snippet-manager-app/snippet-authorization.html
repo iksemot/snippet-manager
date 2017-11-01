@@ -1,20 +1,36 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-
-<link rel="import" href="../../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
 <dom-module id="snippet-authorization">
   <template>
-    <style include="paper-dialog-shared-styles">
+    <style>
       :host {
-        width: 450px;
+        @apply --paper-font-common-base;
+        @apply --shadow-elevation-4dp;
+        display: block;
+        width: 284px;
         margin: auto;
+      }
+
+      .header {
+        height: 144px;
+        padding: 16px;
+        background: var(--default-primary-color);
+        color: var(--text-primary-color);
+        @apply --paper-font-display1;
+      }
+
+      paper-button {
+        width: 100%;
       }
     </style>
 
-    <slot>
-      Authenticate with:
-      <paper-button raised class="indigo" on-click="_authenticateWithDropbox">Dropbox</paper-button>
-    </slot>
+    <div class="header">
+      Authenticate
+    </div>
+    <paper-button on-click="_authenticateWithDropbox">Dropbox</paper-button>
+
   </template>
 
   <script>

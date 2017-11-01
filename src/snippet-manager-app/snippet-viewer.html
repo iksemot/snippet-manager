@@ -1,18 +1,53 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
 <link rel="import" href="../../bower_components/marked-element/marked-element.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 
 <dom-module id="snippet-viewer">
   <template>
     <style>
       :host {
+        @apply --paper-font-common-base;
+        @apply --shadow-elevation-4dp;
         display: block;
+        width: calc(100% - 32px);
+        height: calc(100vh - 64px - 25px);
+        margin: auto;
+      }
+
+      .toolbar {
+        @apply --paper-font-title;
+        height: 32px;
+        background: var(--default-primary-color);
+        color: var(--text-primary-color);
+        padding: 16px;
+      }
+
+      paper-fab {
+        position: absolute;
+        top: 44px;
+        right: 54px;
+      }
+
+      .content {
+        background: #fff;
+        padding: 16px;
+        height: calc(100% - 64px - 32px);
+        overflow: auto;
       }
     </style>
 
-    <h1>[[path]]</h1>
-    <marked-element markdown="[[content]]">
+    <div class="toolbar">
+      [[path]]
+    </div>
+    <paper-fab icon="create" id="editButton" on-click="_edit"></paper-fab>
+    <div class="content">
+      <marked-element markdown="[[content]]">
         <div slot="markdown-html"></div>
-    </marked-element>
+      </marked-element>
+    </div>
+
   </template>
 
   <script>
@@ -39,6 +74,16 @@
           .then((content) => {
             this.content = content;
           });
+      }
+
+      _edit() {
+        this.dispatchEvent(new CustomEvent('snippet:edit', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            path: this.path
+          }
+        }));
       }
     }
 

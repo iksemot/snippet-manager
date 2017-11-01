@@ -1,17 +1,62 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 
 <dom-module id="snippet-editor">
   <template>
     <style>
       :host {
+        @apply --paper-font-common-base;
+        @apply --shadow-elevation-4dp;
         display: block;
+        width: calc(100% - 32px);
+        height: calc(100vh - 64px - 25px);
+        margin: auto;
+      }
+
+      .toolbar {
+        height: 32px;
+        background: var(--default-primary-color);
+        color: var(--text-primary-color);
+        padding: 0 16px 32px;
+      }
+
+      paper-fab {
+        position: absolute;
+        top: 44px;
+        right: 54px;
+      }
+
+      .content {
+        background: #fff;
+        padding: 16px;
+        height: calc(100% - 64px - 32px);
+        overflow: auto;
+      }
+
+      paper-input {
+        --paper-input-container-color: #fff;
+        --paper-input-container-input-color: #fff;
+        width: calc(100% - 84px);
+      }
+
+      paper-textarea {
+        --iron-autogrow-textarea: {
+          font-family: monospace;
+        };
       }
     </style>
 
-    <paper-input value="{{name}}"></paper-input>
-    <paper-textarea value="{{content}}"></paper-textarea>
+      <div class="toolbar">
+        <paper-input value="{{name}}"></paper-input>
+      </div>
+      <paper-fab icon="save" id="saveButton" on-click="_save"></paper-fab>
+      <div class="content">
+        <paper-textarea value="{{content}}"></paper-textarea>
+      </div>
   </template>
 
   <script>
@@ -44,6 +89,16 @@
             this.name = this.path;
             this.content = content;
           });
+      }
+
+      _save() {
+        this.dispatchEvent(new CustomEvent('snippet:save', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            path: this.path
+          }
+        }));
       }
     }
 

@@ -89,10 +89,6 @@
         <app-toolbar>
           <paper-icon-button icon="menu" id="toggle" on-click="toggleDrawer"></paper-icon-button>
           <div main-title>Snippet Manager</div>
-          <!-- <iron-pages selected="[[subrouteData.action]]" attr-for-selected="action">
-            <paper-icon-button action="view" icon="create" on-click="editItem" visible="false"></paper-icon-button>
-            <paper-icon-button action="edit" icon="save" on-click="saveItem" visible="false"></paper-icon-button>
-          </iron-pages> -->
           <template is="dom-if" if="[[isLoading]]">
             <paper-progress value="10" indeterminate bottom-item></paper-progress>
           </template>
@@ -200,17 +196,9 @@
       }
 
       _onSnippetSave(e) {
-        var path = e.detail.path;
-        this.set("route.path", "/snippet/view/" + path);
-      }
-
-      viewItem(itemId) {
-        var filePath = this.entries[itemId].path_lower;
-        this.set("route.path", "/snippet/view" + filePath);
-      }
-
-      saveItem () {
-        var path = this.subsubrouteData.path;
+        var path = e.detail.path,
+          newContent = e.detail.newContent,
+          newName = e.detail.newName;
 
         Promise.resolve()
           .then(() => this.saveContentOnClick(path, this.newContent))
@@ -218,6 +206,21 @@
           .then(() => this._refreshEntriesList())
           .then(() => this.set("route.path", "/snippet/view/" + this.newName));
       }
+
+      viewItem(itemId) {
+        var filePath = this.entries[itemId].path_lower;
+        this.set("route.path", "/snippet/view" + filePath);
+      }
+
+      // saveItem () {
+      //   var path = this.subsubrouteData.path;
+
+      //   Promise.resolve()
+      //     .then(() => this.saveContentOnClick(path, this.newContent))
+      //     .then(() => this.saveFileNameOnClick(path, this.newName))
+      //     .then(() => this._refreshEntriesList())
+      //     .then(() => this.set("route.path", "/snippet/view/" + this.newName));
+      // }
 
       createNewItemOnClick() {
         this.dao.create("unnamed")

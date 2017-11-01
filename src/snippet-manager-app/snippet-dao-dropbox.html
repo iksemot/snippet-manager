@@ -98,17 +98,17 @@
           to_path: "/" + newName
         };
 
-        return this.dbx.filesMoveV2(fileRelocation);
+        return this.__dbx.filesMoveV2(fileRelocation);
       }
 
       save(fileName, content) {
         var fileCommit = {
-          path: "/" + path,
+          path: "/" + fileName,
           contents: content,
           mode: 'overwrite'
         }
 
-        return this.dbx.filesUpload(fileCommit);
+        return this.__dbx.filesUpload(fileCommit);
       }
 
       _parseAuthToken() {

@@ -1,12 +1,13 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
-<link rel="import" href="../../bower_components/marked-element/marked-element.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/prism-element/prism-highlighter.html">
+<link rel="import" href="../../bower_components/prism-element/prism-theme-default.html">
 
 <dom-module id="snippet-viewer">
   <template>
-    <style>
+    <style include="prism-theme-default">
       :host {
         @apply --paper-font-common-base;
         @apply --shadow-elevation-4dp;
@@ -43,9 +44,8 @@
     </div>
     <paper-fab icon="create" id="editButton" on-click="_edit"></paper-fab>
     <div class="content">
-      <marked-element markdown="[[content]]">
-        <div slot="markdown-html"></div>
-      </marked-element>
+      <prism-highlighter id="highlighter"></prism-highlighter>
+      <pre id="sourcecode"></pre>
     </div>
 
   </template>
@@ -72,7 +72,7 @@
       loadFile () {
         this.dao.read(this.path)
           .then((content) => {
-            this.content = content;
+            this.$.sourcecode.innerHTML = this._highlight(content);
           });
       }
 
@@ -84,6 +84,16 @@
             path: this.path
           }
         }));
+      }
+
+      _highlight (code, lang) {
+        var event = new CustomEvent("syntax-highlist", {
+          detail: {
+            code: code
+          }
+        })
+        this.$.highlighter._highlight(event);
+        return event.detail.code;
       }
     }
 

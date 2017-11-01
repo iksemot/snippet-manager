@@ -212,16 +212,6 @@
         this.set("route.path", "/snippet/view" + filePath);
       }
 
-      // saveItem () {
-      //   var path = this.subsubrouteData.path;
-
-      //   Promise.resolve()
-      //     .then(() => this.saveContentOnClick(path, this.newContent))
-      //     .then(() => this.saveFileNameOnClick(path, this.newName))
-      //     .then(() => this._refreshEntriesList())
-      //     .then(() => this.set("route.path", "/snippet/view/" + this.newName));
-      // }
-
       createNewItemOnClick() {
         this.dao.create("unnamed")
           .then((fileItem) => {

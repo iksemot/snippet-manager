@@ -159,7 +159,8 @@
       }
 
       onQueriesChange(number) {
-        this.set("isLoading", number > 0);
+        if (this.isLoading === number > 0) return;
+        this.isLoading = number > 0;
       }
     }
 

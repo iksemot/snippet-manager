@@ -12,7 +12,7 @@
       }
     </style>
 
-    <snippet-dao id="dao" is-ready="{{isDAOReady}}" is-authorized="{{isAuthorized}}" dao="{{dao}}"></snippet-dao>
+    <snippet-dao id="dao" is-ready="{{isDAOReady}}" is-authorized="{{isAuthorized}}" is-loading="{{isDAOLoading}}" dao="{{dao}}"></snippet-dao>
 
     <template is="dom-if" if="[[isDAOReady]]">
       <template is="dom-if" if="[[!isAuthorized]]">
@@ -20,7 +20,7 @@
       </template>
 
       <template is="dom-if" if="[[isAuthorized]]">
-        <snippet-manager dao="{{dao}}"></snippet-manager>
+        <snippet-manager dao="{{dao}}" is-loading="[[isDAOLoading]]"></snippet-manager>
       </template>
     </template>
 
@@ -32,6 +32,9 @@
       static get properties() {
         return {
           isDAOReady: {
+            type: Boolean
+          },
+          isDAOLoading: {
             type: Boolean
           },
           isAuthorized: {

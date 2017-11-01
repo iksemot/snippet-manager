@@ -16,6 +16,11 @@
             value: false,
             notify: true
           },
+          isLoading: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
           dao: {
             type: Object,
             notify: true
@@ -55,6 +60,7 @@
         let href = "../../src/snippet-manager-app/snippet-dao-" + this._provider + ".html",
           onload = () => {
             var dao = document.createElement("snippet-dao-" + this._provider)
+            dao.addEventListener("is-loading-changed", () => { this.set("isLoading", dao.isLoading); })
             this.set("dao", dao);
             this.appendChild(dao);
           },
